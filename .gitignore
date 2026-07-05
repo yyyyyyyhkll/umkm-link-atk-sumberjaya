@@ -1,0 +1,8 @@
+# Editor / OS sampah sistem
+.vscode/
+.DS_Store
+Thumbs.db
+
+# File log atau cache lokal jika ada
+*.log
+.eslintcache
