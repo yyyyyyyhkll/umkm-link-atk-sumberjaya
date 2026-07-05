@@ -1277,7 +1277,9 @@ function showPayment(){
     showCatalog();
     return;
   }
+  document.getElementById("catalogView").classList.add("hidden");
   document.getElementById("checkoutView").classList.add("hidden");
+  document.getElementById("invoiceView").classList.add("hidden");
   document.getElementById("paymentView").classList.remove("hidden");
   document.getElementById("payTotal").textContent = formatRupiah(draft.subtotal + draft.ongkir);
   localStorage.setItem("umkmlink_active_view", "payment");
