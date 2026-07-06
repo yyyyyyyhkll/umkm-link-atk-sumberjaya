@@ -121,12 +121,80 @@
   input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   ::-webkit-scrollbar{height:6px; width:6px;}
   ::-webkit-scrollbar-thumb{background:#CBD5E1; border-radius:10px;}
+
+  /* === Navbar scroll state === */
+  #mainNav{ transition: background-color 0.3s ease, box-shadow 0.3s ease, backdrop-filter 0.3s ease, border-color 0.3s ease, padding 0.3s ease; }
+  #mainNav.is-scrolled{ background:linear-gradient(180deg, rgba(255,255,255,0.97) 0%, rgba(248,250,252,0.88) 100%) !important; box-shadow:0 6px 24px -16px rgba(15,23,42,0.18); border-color:#E2E8F0; backdrop-filter: blur(18px) saturate(160%); -webkit-backdrop-filter: blur(18px) saturate(160%); }
+  #mainNav.is-scrolled-deep{ backdrop-filter: blur(22px) saturate(180%); -webkit-backdrop-filter: blur(22px) saturate(180%); box-shadow:0 10px 32px -18px rgba(15,23,42,0.22); }
+
+  /* === Product card 3D tilt parallax === */
+  .product-tilt{ transform-style: preserve-3d; will-change: transform; transition: transform 220ms cubic-bezier(.2,.8,.2,1), box-shadow 220ms ease; }
+  .product-tilt .tilt-shine{ position:absolute; inset:0; pointer-events:none; border-radius:inherit; opacity:0; transition: opacity 200ms ease; background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,0.55), rgba(255,255,255,0) 60%); }
+  .product-tilt:hover .tilt-shine{ opacity:1; }
+  .product-tilt .tilt-content{ transform: translateZ(18px); }
+  .product-tilt .tilt-cta{ transform: translateZ(28px); }
+
+  /* === Cart drawer staggered slide-in === */
+  .cart-item-enter{ animation: cartSlideIn 0.4s cubic-bezier(.2,.8,.2,1) both; opacity:0; }
+  @keyframes cartSlideIn{
+    from{ opacity:0; transform: translateX(24px) scale(0.98); }
+    to{ opacity:1; transform: translateX(0) scale(1); }
+  }
+
+  /* === Flying item animation === */
+  .flying-clone{ position: fixed; left:0; top:0; pointer-events:none; z-index:60; will-change: transform, opacity; transform: translate(0,0) scale(1); transition: transform 720ms cubic-bezier(.45,.05,.55,.95), opacity 720ms ease; }
+  .flying-clone .flying-inner{ width:64px; height:64px; border-radius:18px; background:#FFFFFF; border:2px solid var(--secondary); box-shadow:0 16px 32px -12px rgba(15,23,42,0.35); display:flex; align-items:center; justify-content:center; font-size:32px; overflow:hidden; }
+  .flying-clone .flying-inner img{ width:100%; height:100%; object-fit:cover; }
+  @keyframes cartBadgePopBounce{
+    0%   { transform: scale(1); }
+    25%  { transform: scale(1.6) rotate(-8deg); }
+    50%  { transform: scale(0.85) rotate(6deg); }
+    75%  { transform: scale(1.18) rotate(-3deg); }
+    100% { transform: scale(1) rotate(0); }
+  }
+  .cart-badge-bounce{ animation: cartBadgePopBounce 0.65s cubic-bezier(.34,1.56,.64,1); }
+
+  /* === Fuzzy match highlight === */
+  .fuzzy-hl{ background: linear-gradient(180deg, transparent 60%, rgba(56,189,248,0.35) 60%); border-radius:2px; padding:0 1px; }
+
+  /* === Thermal receipt style for invoice === */
+  .thermal-receipt{
+    background:
+      repeating-linear-gradient(0deg, rgba(15,23,42,0.025) 0 1px, transparent 1px 3px),
+      #FFFFFF;
+    font-family:'Courier Prime', 'Courier New', ui-monospace, monospace;
+    color:#0F172A;
+    border:1px solid #E2E8F0;
+    border-radius:14px;
+    padding:1.5rem;
+    position:relative;
+    box-shadow:0 12px 30px -22px rgba(15,23,42,0.25);
+  }
+  .thermal-receipt::before,
+  .thermal-receipt::after{
+    content:""; position:absolute; left:0; right:0; height:10px;
+    background-image:radial-gradient(circle, var(--bg) 5px, transparent 5.5px);
+    background-size:14px 10px; background-position:0 center; background-repeat:repeat-x;
+  }
+  .thermal-receipt::before{ top:-5px; }
+  .thermal-receipt::after{ bottom:-5px; transform:scaleY(-1); }
+  .thermal-receipt .receipt-title{ letter-spacing:0.18em; font-weight:800; }
+  .thermal-receipt .receipt-row{ display:flex; justify-content:space-between; gap:8px; font-size:12.5px; line-height:1.55; }
+  .thermal-receipt .receipt-row > span:first-child{ color:#475569; }
+  .thermal-receipt .receipt-divider{ border-top:2px dashed #94A3B8; margin:0.75rem 0; }
+  .thermal-receipt .receipt-total{ font-size:15px; font-weight:800; }
+
+  /* === Product/detail overlay smoother transitions === */
+  #productDetailOverlay{ opacity:0; transition: opacity 250ms ease; will-change: opacity; }
+  #productDetailOverlay.overlay-fade{ opacity:1; }
+  #productDetailOverlay > div{ transform: translateY(12px); transition: transform 250ms cubic-bezier(.4,0,.2,1); will-change: transform; }
+  #productDetailOverlay.overlay-fade > div{ transform: translateY(0); }
 </style>
 </head>
 <body class="min-h-screen">
 
 <!-- NAVBAR -->
-<nav id="mainNav" class="sticky top-0 z-40 bg-white/70 border-b border-slate-100" style="background:linear-gradient(180deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.55) 100%); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); transition: all 0.3s ease;">
+<nav id="mainNav" class="sticky top-0 z-40 border-b border-slate-100" style="background:linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(248,250,252,0.65) 100%); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); transition: all 0.3s ease;">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
     <div class="flex items-center gap-2">
       <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white" style="background:var(--secondary)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M3 9l1-5h16l1 5"></path><path d="M3 9a2 2 0 004 0 2 2 0 004 0 2 2 0 004 0 2 2 0 004 0"></path><path d="M5 9v10h14V9"></path><path d="M9 21v-6h6v6"></path></svg></div>
@@ -169,7 +237,7 @@
       <img src="img/hero-toko.jpg" alt="Toko ATK Sumber Jaya" loading="lazy"
         class="absolute inset-0 w-full h-full object-cover"
         onerror="this.remove()">
-      <div class="absolute inset-0" style="background:linear-gradient(90deg, rgba(30,41,59,.8) 0%, rgba(56,189,248,.25) 55%, rgba(30,41,59,.1) 100%)"></div>
+      <div class="absolute inset-0" style="background:linear-gradient(90deg, rgba(15,23,42,.78) 0%, rgba(30,41,59,.45) 45%, rgba(56,189,248,.2) 75%, rgba(30,41,59,.08) 100%)"></div>
       <div class="absolute inset-0 flex flex-col justify-center px-5 sm:px-8 pb-6 sm:pb-8">
         <p class="text-xs font-bold uppercase tracking-wider text-white/80">Toko ATK Sumber Jaya</p>
         <h1 class="text-xl sm:text-3xl font-extrabold mt-1 text-white max-w-md leading-snug">Alat Tulis Kantor, Stok Ready, Kirim Hari Ini</h1>
@@ -431,46 +499,54 @@
 
 <!-- INVOICE VIEW -->
 <div id="invoiceView" class="hidden max-w-2xl mx-auto px-4 sm:px-6 pt-6 pb-28">
-  <div id="invoiceContent" class="bg-white rounded-2xl border border-slate-100 p-6">
-    <div class="flex items-center justify-between mb-6">
-      <div class="flex items-center gap-2">
-        <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white" style="background:var(--secondary)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M3 9l1-5h16l1 5"></path><path d="M3 9a2 2 0 004 0 2 2 0 004 0 2 2 0 004 0 2 2 0 004 0"></path><path d="M5 9v10h14V9"></path><path d="M9 21v-6h6v6"></path></svg></div>
-        <span class="font-extrabold text-lg" style="color:var(--text)">UMKM<span style="color:var(--secondary)">-Link</span></span>
-      </div>
-      <span id="invStatusBadge" class="text-xs font-bold px-3 py-1.5 rounded-full" style="background:#ECFDF5; color:var(--secondary)">Status</span>
+  <div id="invoiceContent" class="thermal-receipt">
+    <div class="text-center mb-4">
+      <p class="receipt-title text-xs" style="color:var(--secondary)">=== STRUK PEMBELIAN ===</p>
+      <p class="font-extrabold text-base mt-1" style="color:var(--text)">TOKO ATK SUMBER JAYA</p>
+      <p class="text-[11px] text-slate-500">Jl. Contoh Alamat No.123, Banjarmasin</p>
+      <p class="text-[11px] text-slate-500">Telp/WA: 0812-3456-7890</p>
     </div>
 
-    <div class="grid grid-cols-2 gap-4 text-sm mb-6">
-      <div>
-        <p class="text-slate-400">No. Invoice</p>
-        <p id="invNumber" class="font-bold font-kasir" style="color:var(--text)">-</p>
-      </div>
-      <div>
-        <p class="text-slate-400">Tanggal</p>
-        <p id="invDate" class="font-bold" style="color:var(--text)">-</p>
-      </div>
-      <div>
-        <p class="text-slate-400">Nama Pelanggan</p>
-        <p id="invNama" class="font-bold" style="color:var(--text)">-</p>
-      </div>
-      <div>
-        <p class="text-slate-400">Metode</p>
-        <p id="invMetode" class="font-bold" style="color:var(--text)">-</p>
-      </div>
+    <div class="receipt-divider"></div>
+
+    <div class="grid grid-cols-2 gap-y-1.5 gap-x-3 text-[12.5px] mb-2">
+      <div class="receipt-row"><span>No</span><span id="invNumber" class="font-bold" style="color:var(--text)">-</span></div>
+      <div class="receipt-row"><span>Tgl</span><span id="invDate" class="font-bold" style="color:var(--text)">-</span></div>
+      <div class="receipt-row"><span>Plg</span><span id="invNama" class="font-bold truncate" style="color:var(--text)">-</span></div>
+      <div class="receipt-row"><span>Byr</span><span id="invMetode" class="font-bold" style="color:var(--text)">-</span></div>
     </div>
 
-    <div id="invItems" class="flex flex-col gap-2 border-t border-slate-100 pt-4"></div>
+    <div class="receipt-divider"></div>
+    <p class="text-[11px] font-bold tracking-widest mb-2" style="color:#475569">-- DETAIL BARANG --</p>
 
-    <div class="flex flex-col gap-2 border-t border-slate-100 pt-4 mt-4 text-sm">
-      <div class="flex justify-between"><span class="text-slate-500">Subtotal</span><span id="invSubtotal" class="font-semibold font-kasir" style="color:var(--text)">Rp0</span></div>
-      <div class="flex justify-between"><span class="text-slate-500">Ongkos Kirim</span><span id="invOngkir" class="font-semibold font-kasir" style="color:var(--text)">Rp0</span></div>
-      <div class="flex justify-between text-base pt-2 border-t border-slate-200"><span class="font-bold" style="color:var(--text)">Total</span><span id="invTotal" class="font-extrabold font-kasir" style="color:var(--secondary)">Rp0</span></div>
+    <div id="invItems" class="flex flex-col gap-1.5"></div>
+
+    <div class="receipt-divider"></div>
+
+    <div class="flex flex-col gap-1.5">
+      <div class="receipt-row"><span>Subtotal</span><span id="invSubtotal" class="font-semibold" style="color:var(--text)">Rp0</span></div>
+      <div class="receipt-row"><span>Ongkir</span><span id="invOngkir" class="font-semibold" style="color:var(--text)">Rp0</span></div>
+      <div class="receipt-divider"></div>
+      <div class="receipt-row receipt-total"><span>TOTAL</span><span id="invTotal" style="color:var(--secondary)">Rp0</span></div>
     </div>
 
-    <p class="text-center text-xs text-slate-400 mt-6">Terima kasih sudah belanja di Toko ATK Sumber Jaya 🙏</p>
+    <div class="receipt-divider"></div>
+
+    <div class="flex items-center justify-between gap-3 mt-2">
+      <span id="invStatusBadge" class="text-[11px] font-bold px-2.5 py-1 rounded-full" style="background:#ECFDF5; color:var(--secondary)">Status</span>
+      <span class="text-[11px] text-slate-400">simpan struk ini sebagai bukti</span>
+    </div>
+
+    <p class="text-center text-[11px] text-slate-500 mt-4">~ Terima kasih sudah belanja ~</p>
+    <p class="text-center text-[10px] text-slate-400 mt-1">Powered by UMKM-Link</p>
+
+    <!-- Cap tinta "PESANAN DIPROSES" — posisikan agak keluar dari konten teks -->
+    <div class="flex justify-end mt-4 mb-1">
+      <span class="ink-stamp inline-block text-[11px] sm:text-xs px-3 py-1.5">PESANAN DIPROSES</span>
+    </div>
   </div>
 
-  <div class="flex gap-3 mt-4">
+  <div class="flex gap-3 mt-6">
     <button id="downloadInvoiceBtn" type="button" class="btn-primary flex-1 rounded-xl py-3 font-bold">Download PDF</button>
     <button id="backToCatalogFromInvoice" type="button" class="flex-1 rounded-xl py-3 font-bold border border-slate-200">Kembali ke Katalog</button>
   </div>
@@ -1261,6 +1337,28 @@ function populateKecamatan(){
 }
 populateKecamatan();
 
+// =====================================================
+// NAVBAR SCROLL STATE — saat di-scroll, navbar jadi lebih solid dengan shadow halus
+// (transisi halus 300ms sudah diatur di CSS #mainNav).
+// =====================================================
+(function initNavbarScrollState(){
+  const nav = document.getElementById("mainNav");
+  if(!nav) return;
+  let ticking = false;
+  function update(){
+    if(window.scrollY > 8) nav.classList.add("is-scrolled");
+    else nav.classList.remove("is-scrolled");
+    ticking = false;
+  }
+  window.addEventListener("scroll", () => {
+    if(!ticking){
+      requestAnimationFrame(update);
+      ticking = true;
+    }
+  }, { passive: true });
+  update();
+})();
+
 function showCatalog(){
   closeCartFn();
   closeProductDetail();
@@ -1647,8 +1745,8 @@ function renderInvoice(draft){
     const harga = item.hargaSaat ?? getProductById(item.id)?.harga ?? 0;
     const varianLabel = item.varian ? ` (${item.varian})` : "";
     return `
-      <div class="flex justify-between text-sm">
-        <span style="color:var(--text)">${nama}${varianLabel} <span class="text-slate-400">x${item.qty}</span></span>
+      <div class="receipt-row">
+        <span style="color:var(--text)"><span class="text-slate-400">x${item.qty}</span> ${nama}${varianLabel}</span>
         <span class="font-semibold" style="color:var(--text)">${formatRupiah(harga * item.qty)}</span>
       </div>
     `;
@@ -2457,13 +2555,27 @@ function openProductDetail(id){
   }
 
   const overlay = document.getElementById("productDetailOverlay");
+  // Buka modal: pastikan hidden dilepas dulu dan overlay memulai dari opacity 0 (CSS),
+  // lalu pakai requestAnimationFrame agar browser sempat commit posisi awal sebelum
+  // transisi opacity 250ms dijalankan — tanpa ini, fade-in terasa kaku/jepret.
   overlay.classList.remove("hidden");
-  void overlay.offsetWidth;
-  overlay.classList.add("overlay-fade");
+  overlay.classList.remove("overlay-fade");
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      overlay.classList.add("overlay-fade");
+    });
+  });
 }
 
 function closeProductDetail(){
   const overlay = document.getElementById("productDetailOverlay");
+  if(overlay.classList.contains("hidden")){
+    detailProductId = null;
+    return;
+  }
+  // Tutup modal: hapus overlay-fade dulu (kembali ke opacity 0 via transisi CSS 250ms),
+  // tunggu sampai transisi selesai baru sembunyikan elemen — setTimeout 250ms sama
+  // dengan durasi transisi #productDetailOverlay agar tidak menutup sebelum fade selesai.
   overlay.classList.remove("overlay-fade");
   setTimeout(() => {
     overlay.classList.add("hidden");
