@@ -1031,6 +1031,21 @@ function validateCartAgainstStock(){
   return adjusted;
 }
 
+// Floating cart cuma relevan di halaman katalog — di checkout/payment/invoice/admin/riwayat
+// pengguna sudah di alur lain, jadi bar ini disembunyikan biar tidak menutupi form/konten.
+function updateFloatingCartVisibility(){
+  const floating = document.getElementById("floatingCart");
+  const count = getCartCount();
+  const isCatalogView = !document.getElementById("catalogView").classList.contains("hidden");
+  if(count > 0 && isCatalogView){
+    floating.classList.remove("hidden");
+    document.getElementById("floatingCartCount").textContent = count;
+    document.getElementById("floatingCartTotal").textContent = formatRupiah(getCartTotal());
+  } else {
+    floating.classList.add("hidden");
+  }
+}
+
 function renderCart(){
   validateCartAgainstStock();
   const wrap = document.getElementById("cartItems");
@@ -1041,15 +1056,7 @@ function renderCart(){
   // badge navbar
   document.getElementById("cartBadge").textContent = count;
 
-  // floating cart (mobile)
-  const floating = document.getElementById("floatingCart");
-  if(count > 0){
-    floating.classList.remove("hidden");
-    document.getElementById("floatingCartCount").textContent = count;
-    document.getElementById("floatingCartTotal").textContent = formatRupiah(total);
-  } else {
-    floating.classList.add("hidden");
-  }
+  updateFloatingCartVisibility();
 
   document.getElementById("cartSubtotal").textContent = formatRupiah(total);
   document.getElementById("checkoutBtn").disabled = count === 0;
@@ -1175,6 +1182,7 @@ function showCatalog(){
   document.getElementById("checkoutView").classList.add("hidden");
   document.getElementById("riwayatView").classList.add("hidden");
   localStorage.setItem("umkmlink_active_view", "catalog");
+  updateFloatingCartVisibility();
   window.scrollTo(0,0);
 }
 
@@ -1184,6 +1192,7 @@ function showCheckout(){
   restoreCheckoutFormDraft();
   updateCheckoutSummary();
   localStorage.setItem("umkmlink_active_view", "checkout");
+  updateFloatingCartVisibility();
   window.scrollTo(0,0);
 }
 
@@ -1283,6 +1292,7 @@ function showPayment(){
   document.getElementById("paymentView").classList.remove("hidden");
   document.getElementById("payTotal").textContent = formatRupiah(draft.subtotal + draft.ongkir);
   localStorage.setItem("umkmlink_active_view", "payment");
+  updateFloatingCartVisibility();
   window.scrollTo(0,0);
 }
 
@@ -1383,6 +1393,26 @@ function reduceStockForOrder(items){
       edits[item.id] = { ...(edits[item.id] || {}), varian: product.varian };
     } else {
       product.stok = Math.max(0, product.stok - item.qty);
+      edits[item.id] = { ...(edits[item.id] || {}), stok: product.stok };
+    }
+  });
+  saveAdminEdits(edits);
+}
+
+// Kebalikan dari reduceStockForOrder — dipanggil saat pesanan dibatalkan,
+// stok yang sempat dipotong dikembalikan. Produk/varian yang sudah dihapus
+// admin dilewati saja (stoknya sudah tidak relevan lagi).
+function restoreStockForOrder(items){
+  const edits = loadAdminEdits();
+  items.forEach(item => {
+    const product = getProductById(item.id);
+    if(!product) return;
+    if(hasVarian(product)){
+      const v = product.varian.find(v => v.nama === (item.varian ?? item.catatanVarian));
+      if(v) v.stok = v.stok + item.qty;
+      edits[item.id] = { ...(edits[item.id] || {}), varian: product.varian };
+    } else {
+      product.stok = (product.stok || 0) + item.qty;
       edits[item.id] = { ...(edits[item.id] || {}), stok: product.stok };
     }
   });
@@ -1654,7 +1684,7 @@ function isSameDay(iso, ref){
 function getTodayStats(){
   const history = loadOrdersHistory();
   const today = new Date();
-  const todayOrders = history.filter(o => o.tanggal && isSameDay(o.tanggal, today));
+  const todayOrders = history.filter(o => o.tanggal && isSameDay(o.tanggal, today) && !o.dibatalkan);
   const pendapatan = todayOrders.reduce((sum, o) => sum + (o.subtotal || 0) + (o.ongkir || 0), 0);
   return { jumlahPesanan: todayOrders.length, pendapatan };
 }
@@ -1687,7 +1717,7 @@ function hideAdminDashboard(){
 let adminSearch = "";
 
 function getBestSellers(limit = 5){
-  const history = loadOrdersHistory();
+  const history = loadOrdersHistory().filter(order => !order.dibatalkan);
   const qtyById = {};
   history.forEach(order => {
     (order.items || []).forEach(item => {
@@ -2127,29 +2157,70 @@ function renderRiwayat(){
   }
   empty.classList.add("hidden");
 
-  wrap.innerHTML = history.map((order, idx) => {
+  wrap.innerHTML = history.map((order) => {
     const tanggalFmt = new Date(order.tanggal).toLocaleDateString("id-ID", { day:"2-digit", month:"long", year:"numeric" });
     const total = (order.subtotal || 0) + (order.ongkir || 0);
     const jumlahItem = (order.items || []).reduce((sum, i) => sum + i.qty, 0);
+    const dibatalkan = !!order.dibatalkan;
+    const statusLabel = dibatalkan ? "Dibatalkan" : (order.statusPembayaran || "-");
+    const statusStyle = dibatalkan ? "background:#FEE2E2; color:#DC2626" : "background:#ECFDF5; color:var(--secondary)";
     return `
-      <div class="bg-white rounded-2xl border border-slate-100 p-4">
+      <div class="bg-white rounded-2xl border border-slate-100 p-4 ${dibatalkan ? "opacity-60" : ""}">
         <div class="flex items-center justify-between">
           <p class="font-bold text-sm" style="color:var(--text)">${order.invoiceNumber || "-"}</p>
-          <span class="text-xs font-semibold px-2.5 py-1 rounded-full" style="background:#ECFDF5; color:var(--secondary)">${order.statusPembayaran || "-"}</span>
+          <span class="text-xs font-semibold px-2.5 py-1 rounded-full" style="${statusStyle}">${statusLabel}</span>
         </div>
         <p class="text-xs text-slate-400 mt-1">${tanggalFmt} · ${METODE_BAYAR_LABEL[order.metodePembayaran] || "-"}</p>
         <p class="text-sm text-slate-500 mt-2">${jumlahItem} item</p>
-        <div class="flex items-center justify-between mt-3">
+        <div class="flex items-center justify-between mt-3 gap-2">
           <p class="font-extrabold" style="color:var(--text)">${formatRupiah(total)}</p>
-          <button data-idx="${idx}" class="repeat-order-btn btn-secondary text-xs font-bold px-3 py-2 rounded-lg">Pesan Lagi</button>
+          <div class="flex items-center gap-2">
+            ${dibatalkan ? "" : `<button data-invoice="${order.invoiceNumber}" class="cancel-order-btn text-xs font-bold px-3 py-2 rounded-lg text-red-500 border border-red-200 hover:bg-red-50">Batalkan</button>`}
+            <button data-invoice="${order.invoiceNumber}" class="repeat-order-btn btn-secondary text-xs font-bold px-3 py-2 rounded-lg">Pesan Lagi</button>
+          </div>
         </div>
       </div>
     `;
   }).join("");
 
   wrap.querySelectorAll(".repeat-order-btn").forEach(btn => {
-    btn.addEventListener("click", () => repeatOrder(history[parseInt(btn.dataset.idx)]));
+    btn.addEventListener("click", () => {
+      // Pesan Lagi itu benefit khusus akun Customer — guest cuma bisa LIHAT riwayat,
+      // bukan pakai fiturnya, biar ada alasan nyata buat login sebagai customer.
+      if(getSession()?.role !== "customer"){
+        showToast("Login sebagai Customer dulu untuk pakai Pesan Lagi");
+        openLoginModal();
+        return;
+      }
+      const order = history.find(o => o.invoiceNumber === btn.dataset.invoice);
+      repeatOrder(order);
+    });
   });
+
+  wrap.querySelectorAll(".cancel-order-btn").forEach(btn => {
+    btn.addEventListener("click", () => cancelOrder(btn.dataset.invoice));
+  });
+}
+
+function cancelOrder(invoiceNumber){
+  const ok = window.confirm(`Batalkan pesanan ${invoiceNumber}? Stok akan dikembalikan otomatis.`);
+  if(!ok) return;
+  const history = loadOrdersHistory(); // ambil ulang dari localStorage (bukan copy hasil reverse di UI)
+  const order = history.find(o => o.invoiceNumber === invoiceNumber);
+  if(!order){
+    showToast("Pesanan tidak ditemukan");
+    return;
+  }
+  if(order.dibatalkan){
+    showToast("Pesanan ini sudah dibatalkan sebelumnya");
+    return;
+  }
+  order.dibatalkan = true;
+  restoreStockForOrder(order.items || []);
+  saveOrdersHistory(history);
+  renderRiwayat();
+  renderGrid(); // stok yang dikembalikan langsung kelihatan di katalog
+  showToast(`Pesanan ${invoiceNumber} dibatalkan, stok sudah dikembalikan`);
 }
 
 function repeatOrder(order){
