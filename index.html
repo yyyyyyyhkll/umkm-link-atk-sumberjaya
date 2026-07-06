@@ -607,7 +607,10 @@
 <!-- FLOATING CART (mobile) -->
 <div id="floatingCart" class="hidden fixed bottom-4 left-4 right-4 sm:hidden text-white rounded-2xl px-4 py-3 flex items-center justify-between shadow-2xl z-30 cursor-pointer" style="background:var(--text)">
   <span class="text-sm font-semibold"><span id="floatingCartCount">0</span> item · <span id="floatingCartTotal">Rp0</span></span>
-  <span class="text-sm font-bold" style="color:var(--secondary)">Lihat Keranjang →</span>
+  <div class="flex items-center gap-3">
+    <span class="text-sm font-bold" style="color:var(--secondary)">Lihat Keranjang →</span>
+    <button id="floatingCartDismiss" type="button" aria-label="Tutup" class="w-6 h-6 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 shrink-0">✕</button>
+  </div>
 </div>
 
 <!-- CART DRAWER -->
@@ -944,6 +947,7 @@ function addToCart(productId, varianNama = null){
     cart.push({ id: productId, qty: 1, hargaSaat: hargaVarian(product, varianNama), namaSaat: product.nama, varian: varianNama || undefined });
   }
   saveCart(cart);
+  floatingCartDismissed = false; // ada aktivitas baru di keranjang, bar boleh muncul lagi walau sebelumnya di-dismiss
   renderCart();
   showToast(`${product.nama}${labelVarian} ditambahkan ke keranjang`);
 }
@@ -1033,11 +1037,12 @@ function validateCartAgainstStock(){
 
 // Floating cart cuma relevan di halaman katalog — di checkout/payment/invoice/admin/riwayat
 // pengguna sudah di alur lain, jadi bar ini disembunyikan biar tidak menutupi form/konten.
+let floatingCartDismissed = false; // di-reset ke false tiap kali ada penambahan baru ke keranjang, lihat addToCart()
 function updateFloatingCartVisibility(){
   const floating = document.getElementById("floatingCart");
   const count = getCartCount();
   const isCatalogView = !document.getElementById("catalogView").classList.contains("hidden");
-  if(count > 0 && isCatalogView){
+  if(count > 0 && isCatalogView && !floatingCartDismissed){
     floating.classList.remove("hidden");
     document.getElementById("floatingCartCount").textContent = count;
     document.getElementById("floatingCartTotal").textContent = formatRupiah(getCartTotal());
@@ -1045,6 +1050,11 @@ function updateFloatingCartVisibility(){
     floating.classList.add("hidden");
   }
 }
+document.getElementById("floatingCartDismiss").addEventListener("click", (e) => {
+  e.stopPropagation(); // jangan sampai ikut memicu klik pembuka cart drawer di elemen induknya
+  floatingCartDismissed = true;
+  updateFloatingCartVisibility();
+});
 
 function renderCart(){
   validateCartAgainstStock();
@@ -1522,6 +1532,7 @@ function showInvoice(draft){
   document.getElementById("catalogView").classList.add("hidden");
   document.getElementById("invoiceView").classList.remove("hidden");
   renderInvoice(draft);
+  updateFloatingCartVisibility();
   localStorage.setItem(VIEW_KEY, "invoice");
   window.scrollTo(0,0);
 }
@@ -1718,6 +1729,7 @@ function showAdminDashboard(){
   document.getElementById("adminView").classList.remove("hidden");
   localStorage.setItem("umkmlink_active_view", "admin");
   renderAdminDashboard();
+  updateFloatingCartVisibility();
   window.scrollTo(0,0);
 }
 
@@ -2145,6 +2157,7 @@ function showRiwayat(){
   document.getElementById("adminView").classList.add("hidden");
   document.getElementById("riwayatView").classList.remove("hidden");
   renderRiwayat();
+  updateFloatingCartVisibility();
   localStorage.setItem("umkmlink_active_view", "riwayat");
   window.scrollTo(0,0);
 }
