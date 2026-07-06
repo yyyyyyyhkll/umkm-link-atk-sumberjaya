@@ -22,8 +22,11 @@
   body{background:var(--bg); color:var(--text);}
   .btn-primary{background:var(--secondary); color:white; transition:transform .15s ease, box-shadow .15s ease;}
   .btn-primary:hover{transform:translateY(-1px); box-shadow:0 8px 20px -8px rgba(16,185,129,.5);}
+  .btn-primary:active{transform:scale(0.95);}
   .btn-secondary{background:var(--primary); color:white; transition:transform .15s ease, box-shadow .15s ease;}
   .btn-secondary:hover{transform:translateY(-1px); box-shadow:0 8px 20px -8px rgba(56,189,248,.5);}
+  .btn-secondary:active{transform:scale(0.95);}
+  .add-to-cart-btn:active{transform:scale(0.95);}
   .card-hover{transition:transform .18s ease, box-shadow .18s ease;}
   .card-hover:hover{transform:translateY(-3px); box-shadow:0 12px 28px -12px rgba(30,41,59,.18);}
 
@@ -55,9 +58,60 @@
   .chip{transition:all .15s ease;}
   .chip.active{background:var(--secondary); color:white; border-color:var(--secondary);}
   .placeholder-img{background:linear-gradient(135deg,#E0F2FE,#D1FAE5);}
-  #cartDrawer{transition:transform .25s ease;}
+  /* === View transition animations === */
+  .view-enter { animation: viewFadeIn 0.35s ease forwards; }
+  .view-exit { animation: viewFadeOut 0.25s ease forwards; }
+
+  /* === Overlay fade-in === */
+  .overlay-fade { animation: overlayFadeIn 0.25s ease forwards; }
+
+  /* === Product/detail overlays fade === */
+  #productDetailOverlay,
+  #productModalOverlay,
+  #loginOverlay { transition: opacity .25s ease; }
+  #productDetailOverlay.overlay-fade,
+  #productModalOverlay.overlay-fade,
+  #loginOverlay.overlay-fade { opacity: 1; }
+
+  /* === Cart drawer transition handled via #cartDrawer CSS === */
+  #cartOverlay.overlay-fade { opacity: 1; }
+
+  /* === Product cards stagger animation === */
+  .product-card-enter { animation: listItemIn 0.3s ease forwards; }
+  .product-grid-enter { animation: viewFadeIn 0.35s ease forwards; }
+  @keyframes viewFadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes viewFadeOut {
+    from { opacity: 1; }
+    to   { opacity: 0; }
+  }
+  @keyframes overlayFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes listItemIn {
+    from { opacity: 0; transform: translateX(10px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes popBadge {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.35); }
+    100% { transform: scale(1); }
+  }
+  @keyframes waveMove {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-360px); }
+  }
+  #cartDrawer{transition: transform .3s cubic-bezier(.4,0,.2,1);}
   #cartDrawer.hidden{display:flex !important; transform:translateX(100%); pointer-events:none;}
-  #cartOverlay{transition:opacity .2s ease;}
+  #cartOverlay{transition: opacity .25s ease;}
+  #cartDrawer.view-enter { animation: slideInRight 0.35s cubic-bezier(.4,0,.2,1) forwards; }
+  @keyframes slideInRight {
+    from { transform: translateX(100%); }
+    to   { transform: translateX(0); }
+  }
   .shipping-option:has(input:checked){border-color:var(--secondary); background:#ECFDF5;}
   .payment-option:has(input:checked){border-color:var(--secondary); background:#ECFDF5; color:var(--secondary);}
   .varian-chip{transition:all .15s ease;}
@@ -72,7 +126,7 @@
 <body class="min-h-screen">
 
 <!-- NAVBAR -->
-<nav class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-slate-100">
+<nav id="mainNav" class="sticky top-0 z-40 bg-white/70 border-b border-slate-100" style="background:linear-gradient(180deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.55) 100%); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); transition: all 0.3s ease;">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
     <div class="flex items-center gap-2">
       <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white" style="background:var(--secondary)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M3 9l1-5h16l1 5"></path><path d="M3 9a2 2 0 004 0 2 2 0 004 0 2 2 0 004 0 2 2 0 004 0"></path><path d="M5 9v10h14V9"></path><path d="M9 21v-6h6v6"></path></svg></div>
@@ -115,7 +169,7 @@
       <img src="img/hero-toko.jpg" alt="Toko ATK Sumber Jaya" loading="lazy"
         class="absolute inset-0 w-full h-full object-cover"
         onerror="this.remove()">
-      <div class="absolute inset-0" style="background:linear-gradient(90deg, rgba(30,41,59,.75) 0%, rgba(30,41,59,.35) 55%, rgba(30,41,59,.1) 100%)"></div>
+      <div class="absolute inset-0" style="background:linear-gradient(90deg, rgba(30,41,59,.8) 0%, rgba(56,189,248,.25) 55%, rgba(30,41,59,.1) 100%)"></div>
       <div class="absolute inset-0 flex flex-col justify-center px-5 sm:px-8 pb-6 sm:pb-8">
         <p class="text-xs font-bold uppercase tracking-wider text-white/80">Toko ATK Sumber Jaya</p>
         <h1 class="text-xl sm:text-3xl font-extrabold mt-1 text-white max-w-md leading-snug">Alat Tulis Kantor, Stok Ready, Kirim Hari Ini</h1>
@@ -123,7 +177,7 @@
       </div>
       <!-- Wavy bottom edge: SVG diisi warna --bg supaya hero terlihat "dipotong" gelombang ke arah konten di bawahnya -->
       <svg class="absolute bottom-0 left-0 w-full block" style="height:14%;" viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <path fill="var(--bg)" d="M0,64 C180,110 360,10 600,40 C840,70 900,10 1080,24 C1260,38 1320,90 1440,56 L1440,120 L0,120 Z"></path>
+        <path fill="var(--bg)" d="M0,64 C180,110 360,10 600,40 C840,70 900,10 1080,24 C1260,38 1320,90 1440,56 L1440,120 L0,120 Z" style="animation:waveMove 4s linear infinite">
       </svg>
     </div>
   </div>
@@ -1064,7 +1118,13 @@ function renderCart(){
   const total = getCartTotal();
 
   // badge navbar
-  document.getElementById("cartBadge").textContent = count;
+  const badge = document.getElementById("cartBadge");
+  badge.textContent = count;
+  if(count > 0){
+    badge.style.animation = "none";
+    void badge.offsetWidth;
+    badge.style.animation = "popBadge 0.3s ease";
+  }
 
   updateFloatingCartVisibility();
 
@@ -1125,13 +1185,26 @@ function renderCart(){
 }
 
 function openCart(){
-  document.getElementById("cartDrawer").classList.remove("hidden");
-  document.getElementById("cartOverlay").classList.remove("hidden");
+  const drawer = document.getElementById("cartDrawer");
+  const overlay = document.getElementById("cartOverlay");
+  drawer.classList.remove("hidden");
+  drawer.classList.remove("view-enter");
+  void drawer.offsetWidth; // force reflow so animation replays
+  drawer.classList.add("view-enter");
+  setTimeout(() => drawer.classList.remove("view-enter"), 400);
+  overlay.classList.remove("hidden");
+  overlay.classList.remove("overlay-fade");
+  void overlay.offsetWidth;
+  overlay.classList.add("overlay-fade");
 }
 
 function closeCartFn(){
-  document.getElementById("cartDrawer").classList.add("hidden");
-  document.getElementById("cartOverlay").classList.add("hidden");
+  const drawer = document.getElementById("cartDrawer");
+  const overlay = document.getElementById("cartOverlay");
+  drawer.classList.add("hidden");
+  drawer.classList.remove("view-enter");
+  overlay.classList.add("hidden");
+  overlay.classList.remove("overlay-fade");
 }
 
 document.getElementById("btnCart").addEventListener("click", openCart);
@@ -1190,25 +1263,47 @@ populateKecamatan();
 
 function showCatalog(){
   closeCartFn();
-  closeProductDetail(); // jaga-jaga: popup detail produk tidak boleh nyangkut kalau user pindah halaman tanpa menutupnya dulu
-  document.getElementById("catalogView").classList.remove("hidden");
-  document.getElementById("checkoutView").classList.add("hidden");
-  document.getElementById("riwayatView").classList.add("hidden");
-  localStorage.setItem("umkmlink_active_view", "catalog");
+  closeProductDetail();
+  transitionView("catalogView", "catalog");
   updateFloatingCartVisibility();
   window.scrollTo(0,0);
 }
 
+function transitionView(targetId, viewKey){
+  // hide all views with a fade-out, then show target with fade-in
+  const views = [
+    document.getElementById("catalogView"),
+    document.getElementById("checkoutView"),
+    document.getElementById("paymentView"),
+    document.getElementById("invoiceView"),
+    document.getElementById("adminView"),
+    document.getElementById("riwayatView"),
+  ];
+  views.forEach(v => {
+    if(!v) return;
+    const isTarget = v.id === targetId;
+    if(!isTarget && !v.classList.contains("hidden")){
+      v.classList.add("view-exit");
+      setTimeout(() => { v.classList.add("hidden"); v.classList.remove("view-exit"); }, 200);
+    }
+    if(isTarget){
+      v.classList.remove("hidden");
+      v.classList.remove("view-enter");
+      v.classList.remove("view-exit");
+      void v.offsetWidth; // force reflow so animation replays
+      v.classList.add("view-enter");
+      setTimeout(() => v.classList.remove("view-enter"), 400);
+    }
+  });
+  localStorage.setItem("umkmlink_active_view", viewKey);
+}
+
 function showCheckout(){
-  closeCartFn(); // jaga-jaga: drawer keranjang harus tertutup di halaman manapun selain katalog,
-                 // apa pun jalur yang membawa user ke sini (tombol cart biasa, atau Pesan Lagi)
-  closeProductDetail(); // jaga-jaga: popup detail produk tidak boleh nyangkut di atas form checkout
-  document.getElementById("catalogView").classList.add("hidden");
-  document.getElementById("checkoutView").classList.remove("hidden");
+  closeCartFn();
+  closeProductDetail();
+  transitionView("checkoutView", "checkout");
   restoreCheckoutFormDraft();
   updateCheckoutSummary();
-  localStorage.setItem("umkmlink_active_view", "checkout");
-  updateFloatingCartVisibility();
   window.scrollTo(0,0);
 }
 
@@ -1304,12 +1399,8 @@ function showPayment(){
   }
   closeCartFn();
   closeProductDetail();
-  document.getElementById("catalogView").classList.add("hidden");
-  document.getElementById("checkoutView").classList.add("hidden");
-  document.getElementById("invoiceView").classList.add("hidden");
-  document.getElementById("paymentView").classList.remove("hidden");
+  transitionView("paymentView", "payment");
   document.getElementById("payTotal").textContent = formatRupiah(draft.subtotal + draft.ongkir);
-  localStorage.setItem("umkmlink_active_view", "payment");
   updateFloatingCartVisibility();
   window.scrollTo(0,0);
 }
@@ -1527,13 +1618,9 @@ function generateInvoiceNumber(){
 function showInvoice(draft){
   closeCartFn();
   closeProductDetail();
-  document.getElementById("paymentView").classList.add("hidden");
-  document.getElementById("checkoutView").classList.add("hidden");
-  document.getElementById("catalogView").classList.add("hidden");
-  document.getElementById("invoiceView").classList.remove("hidden");
+  transitionView("invoiceView", "invoice");
   renderInvoice(draft);
   updateFloatingCartVisibility();
-  localStorage.setItem(VIEW_KEY, "invoice");
   window.scrollTo(0,0);
 }
 
@@ -1651,7 +1738,10 @@ function renderAuthUI(){
 }
 
 function openLoginModal(){
-  document.getElementById("loginOverlay").classList.remove("hidden");
+  const overlay = document.getElementById("loginOverlay");
+  overlay.classList.remove("hidden");
+  void overlay.offsetWidth;
+  overlay.classList.add("overlay-fade");
 }
 function closeLoginModal(){
   document.getElementById("loginOverlay").classList.add("hidden");
@@ -1721,21 +1811,14 @@ function refreshCategoriesAfterAdminChange(){
 function showAdminDashboard(){
   closeCartFn();
   closeProductDetail();
-  document.getElementById("catalogView").classList.add("hidden");
-  document.getElementById("checkoutView").classList.add("hidden");
-  document.getElementById("paymentView").classList.add("hidden");
-  document.getElementById("invoiceView").classList.add("hidden");
-  document.getElementById("riwayatView").classList.add("hidden");
-  document.getElementById("adminView").classList.remove("hidden");
-  localStorage.setItem("umkmlink_active_view", "admin");
+  transitionView("adminView", "admin");
   renderAdminDashboard();
   updateFloatingCartVisibility();
   window.scrollTo(0,0);
 }
 
 function hideAdminDashboard(){
-  document.getElementById("adminView").classList.add("hidden");
-  showCatalog();
+  transitionView("catalogView", "catalog");
 }
 
 let adminSearch = "";
@@ -2039,6 +2122,7 @@ function openProductModal(productId){
 
 function closeProductModal(){
   document.getElementById("productModalOverlay").classList.add("hidden");
+  document.getElementById("productModalOverlay").classList.remove("overlay-fade");
 }
 
 document.getElementById("btnAddProduct").addEventListener("click", () => openProductModal(null));
@@ -2150,21 +2234,14 @@ function showRiwayat(){
   }
   closeCartFn();
   closeProductDetail();
-  document.getElementById("catalogView").classList.add("hidden");
-  document.getElementById("checkoutView").classList.add("hidden");
-  document.getElementById("paymentView").classList.add("hidden");
-  document.getElementById("invoiceView").classList.add("hidden");
-  document.getElementById("adminView").classList.add("hidden");
-  document.getElementById("riwayatView").classList.remove("hidden");
+  transitionView("riwayatView", "riwayat");
   renderRiwayat();
   updateFloatingCartVisibility();
-  localStorage.setItem("umkmlink_active_view", "riwayat");
   window.scrollTo(0,0);
 }
 
 function hideRiwayat(){
-  document.getElementById("riwayatView").classList.add("hidden");
-  showCatalog();
+  transitionView("catalogView", "catalog");
 }
 
 document.getElementById("btnRiwayat").addEventListener("click", showRiwayat);
@@ -2379,12 +2456,19 @@ function openProductDetail(id){
     });
   }
 
-  document.getElementById("productDetailOverlay").classList.remove("hidden");
+  const overlay = document.getElementById("productDetailOverlay");
+  overlay.classList.remove("hidden");
+  void overlay.offsetWidth;
+  overlay.classList.add("overlay-fade");
 }
 
 function closeProductDetail(){
-  document.getElementById("productDetailOverlay").classList.add("hidden");
-  detailProductId = null;
+  const overlay = document.getElementById("productDetailOverlay");
+  overlay.classList.remove("overlay-fade");
+  setTimeout(() => {
+    overlay.classList.add("hidden");
+    detailProductId = null;
+  }, 250);
 }
 
 document.getElementById("closeProductDetail").addEventListener("click", closeProductDetail);
