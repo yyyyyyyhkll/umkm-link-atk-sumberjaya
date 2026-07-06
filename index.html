@@ -1142,6 +1142,7 @@ function showToast(message){
     toast.id = "toast";
     toast.className = "fixed bottom-20 sm:bottom-6 left-1/2 -translate-x-1/2 bg-[var(--text)] text-white text-sm font-semibold px-4 py-2.5 rounded-xl shadow-xl z-50 transition-opacity duration-300";
     toast.style.background = "var(--text)";
+    toast.style.pointerEvents = "none"; // toast cuma info sekilas, tidak boleh pernah menangkap klik — termasuk saat memudar/transparan
     document.body.appendChild(toast);
   }
   toast.textContent = message;
@@ -1179,6 +1180,7 @@ populateKecamatan();
 
 function showCatalog(){
   closeCartFn();
+  closeProductDetail(); // jaga-jaga: popup detail produk tidak boleh nyangkut kalau user pindah halaman tanpa menutupnya dulu
   document.getElementById("catalogView").classList.remove("hidden");
   document.getElementById("checkoutView").classList.add("hidden");
   document.getElementById("riwayatView").classList.add("hidden");
@@ -1190,6 +1192,7 @@ function showCatalog(){
 function showCheckout(){
   closeCartFn(); // jaga-jaga: drawer keranjang harus tertutup di halaman manapun selain katalog,
                  // apa pun jalur yang membawa user ke sini (tombol cart biasa, atau Pesan Lagi)
+  closeProductDetail(); // jaga-jaga: popup detail produk tidak boleh nyangkut di atas form checkout
   document.getElementById("catalogView").classList.add("hidden");
   document.getElementById("checkoutView").classList.remove("hidden");
   restoreCheckoutFormDraft();
@@ -1290,6 +1293,7 @@ function showPayment(){
     return;
   }
   closeCartFn();
+  closeProductDetail();
   document.getElementById("catalogView").classList.add("hidden");
   document.getElementById("checkoutView").classList.add("hidden");
   document.getElementById("invoiceView").classList.add("hidden");
@@ -1512,6 +1516,7 @@ function generateInvoiceNumber(){
 
 function showInvoice(draft){
   closeCartFn();
+  closeProductDetail();
   document.getElementById("paymentView").classList.add("hidden");
   document.getElementById("checkoutView").classList.add("hidden");
   document.getElementById("catalogView").classList.add("hidden");
@@ -1704,6 +1709,7 @@ function refreshCategoriesAfterAdminChange(){
 
 function showAdminDashboard(){
   closeCartFn();
+  closeProductDetail();
   document.getElementById("catalogView").classList.add("hidden");
   document.getElementById("checkoutView").classList.add("hidden");
   document.getElementById("paymentView").classList.add("hidden");
@@ -2131,6 +2137,7 @@ function showRiwayat(){
     return;
   }
   closeCartFn();
+  closeProductDetail();
   document.getElementById("catalogView").classList.add("hidden");
   document.getElementById("checkoutView").classList.add("hidden");
   document.getElementById("paymentView").classList.add("hidden");
