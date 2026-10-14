@@ -772,15 +772,24 @@
       <h2 class="font-extrabold text-lg" style="color:var(--text)">Masuk ke UMKM-Link</h2>
       <button id="closeLogin" class="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-100">✕</button>
     </div>
-    <p class="text-sm text-slate-500 mb-4">Demo login — pilih peran, tanpa perlu password.</p>
+    <p class="text-sm text-slate-500 mb-4">Customer tidak perlu akun — langsung belanja. Admin login pakai email &amp; password.</p>
     <div class="flex flex-col gap-3">
       <button data-role="customer" class="login-role-btn btn-secondary rounded-xl py-3 font-bold">Masuk sebagai Customer</button>
-      <button data-role="admin" class="login-role-btn rounded-xl py-3 font-bold text-white" style="background:var(--text)">Masuk sebagai Admin</button>
+    </div>
+    <div class="border-t border-slate-200 mt-4 pt-4">
+      <form id="adminLoginForm" class="flex flex-col gap-2">
+        <input type="email" id="adminLoginEmail" required placeholder="Email admin"
+          class="px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]">
+        <input type="password" id="adminLoginPassword" required placeholder="Password"
+          class="px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]">
+        <button type="submit" id="adminLoginSubmit" class="rounded-xl py-3 font-bold text-white" style="background:var(--text)">Masuk sebagai Admin</button>
+        <p id="adminLoginError" class="hidden text-xs text-red-500 mt-1"></p>
+      </form>
     </div>
   </div>
 </div>
 
-<script>
+<script type="module">
 // =====================================================
 // STAGE 1: STRUKTUR DATA PRODUK + KATALOG (search + filter)
 // STAGE 2: CART (tambah/kurang qty, hapus, subtotal, floating cart, LocalStorage)
@@ -790,32 +799,76 @@
 // STAGE 6: LOGIN MOCK (Customer / Admin, tanpa register/password sungguhan)
 // =====================================================
 
-const PRODUCTS = [
-  { id: 1,  nama: "Kertas HVS A4 70gsm (1 Rim)", kategori: "Kertas", harga: 52000, emoji: "📄", foto: "img/produk/kertas-hvs-a4.jpg", relatedIds: [15, 3, 8],
-    varianLabel: "Warna", varian: [{ nama: "Putih", stok: 25 }, { nama: "Merah", stok: 5 }, { nama: "Kuning", stok: 4 }, { nama: "Hijau", stok: 3 }, { nama: "Biru", stok: 3 }] },
-  { id: 2,  nama: "Kertas HVS F4 70gsm (1 Rim)", kategori: "Kertas", harga: 55000, emoji: "📄", foto: "img/produk/kertas-hvs-f4.jpg", relatedIds: [15, 10, 8],
-    varianLabel: "Warna", varian: [{ nama: "Putih", stok: 15 }, { nama: "Merah", stok: 4 }, { nama: "Kuning", stok: 3 }, { nama: "Hijau", stok: 2 }, { nama: "Biru", stok: 1 }] },
-  { id: 3,  nama: "Pulpen Standard AE7 Hitam",   kategori: "Alat Tulis", harga: 3000,  stok: 200, emoji: "🖊️", foto: "img/produk/pulpen-standard.jpg", relatedIds: [5, 1, 12] },
-  { id: 4,  nama: "Pulpen Pilot G2 0.5",         kategori: "Alat Tulis", harga: 12000, emoji: "🖊️", foto: "img/produk/pulpen-pilot.jpg", relatedIds: [5, 1, 10],
-    varianLabel: "Warna Tinta", varian: [{ nama: "Biru", stok: 25 }, { nama: "Hitam", stok: 20 }, { nama: "Merah", stok: 15 }] },
-  { id: 5,  nama: "Pensil 2B Staedtler Mars Lumograph", kategori: "Alat Tulis", harga: 4500,  stok: 150, emoji: "✏️", foto: "img/produk/pensil-2b.jpg", relatedIds: [3, 1, 12] },
-  { id: 6,  nama: "Spidol Snowman Permanent Set",kategori: "Alat Tulis", harga: 25000, stok: 30, emoji: "🖍️", foto: "img/produk/spidol-permanent.jpg", relatedIds: [7, 1, 10] },
-  { id: 7,  nama: "Spidol Whiteboard Isi 4",     kategori: "Alat Tulis", harga: 22000, stok: 18, emoji: "🖍️", foto: "img/produk/spidol-whiteboard.jpg", relatedIds: [6, 1] },
-  { id: 8,  nama: "Binder Clip",                 kategori: "Perlengkapan", harga: 8000,  emoji: "📎", foto: "img/produk/binder-clip.jpg", relatedIds: [1, 10, 12],
-    varianLabel: "Ukuran", varian: [{ nama: "No. 107 (Kecil)", stok: 20 }, { nama: "No. 155 (Sedang)", stok: 20, hargaTambahan: 3000 }, { nama: "No. 200 (Besar)", stok: 25, hargaTambahan: 7000 }] },
-  { id: 9,  nama: "Lakban",                      kategori: "Perlengkapan", harga: 8500,  emoji: "📦", foto: "img/produk/lakban.jpg", relatedIds: [11, 10],
-    varianLabel: "Ukuran", varian: [{ nama: "1 Inch (24mm)", stok: 25 }, { nama: "2 Inch (48mm)", stok: 30, hargaTambahan: 3000 }, { nama: "3 Inch (72mm)", stok: 15, hargaTambahan: 6500 }] },
-  { id: 10, nama: "Map Plastik (Isi 5)",         kategori: "Perlengkapan", harga: 11000, emoji: "🗂️", foto: "img/produk/map-plastik.jpg", relatedIds: [1, 8, 12],
-    varianLabel: "Warna", varian: [{ nama: "Merah", stok: 8 }, { nama: "Kuning", stok: 9 }, { nama: "Hijau", stok: 9 }, { nama: "Biru", stok: 12 }, { nama: "Putih", stok: 9 }, { nama: "Abu-abu", stok: 8 }] },
-  { id: 11, nama: "Amplop Coklat Polos",         kategori: "Perlengkapan", harga: 18000, emoji: "✉️", foto: "img/produk/amplop.jpg", relatedIds: [1, 3, 9],
-    varianLabel: "Isi", varian: [{ nama: "Isi 50", stok: 20 }, { nama: "Isi 100", stok: 10, hargaTambahan: 16000 }] },
-  { id: 12, nama: "Paperclip (1 Kotak)",         kategori: "Perlengkapan", harga: 5000,  emoji: "🖇️", foto: "img/produk/paperclip.jpg", relatedIds: [8, 10, 3],
-    varianLabel: "Ukuran", varian: [{ nama: "No. 3 (Kecil)", stok: 30 }, { nama: "No. 5 (Sedang)", stok: 40, hargaTambahan: 1500 }, { nama: "Jumbo", stok: 20, hargaTambahan: 4000 }] },
-  { id: 13, nama: "Stapler Kenko HD-10",         kategori: "Alat Kantor", harga: 21000, emoji: "📌", foto: "img/produk/stapler.jpg", relatedIds: [14, 1],
-    varianLabel: "Warna", varian: [{ nama: "Hitam", stok: 15 }, { nama: "Merah", stok: 10 }, { nama: "Biru", stok: 10 } ] },
-  { id: 14, nama: "Isi Staples No. 10 (1 Box)",  kategori: "Alat Kantor", harga: 4000,  stok: 100, emoji: "📌", foto: "img/produk/isi-staples.jpg", relatedIds: [13, 1] },
-  { id: 15, nama: "Tinta Printer Epson 003 Hitam",kategori: "Alat Kantor", harga: 68000, stok: 12, emoji: "🖨️", foto: "img/produk/tinta-printer.jpg", relatedIds: [1, 2] },
-];
+// =====================================================
+// SUMBER DATA PRODUK — dulu literal array hardcode, sekarang di-fetch dari
+// Supabase (Tahap 2 roadmap). Hasil fetch di-reshape supaya bentuknya PERSIS
+// SAMA seperti literal lama (varian array ATAU stok flat, relatedIds array
+// angka) — supaya SEMUA kode di bawah (hasVarian, stokVarian, hargaVarian,
+// cart, admin, dst) tetap jalan tanpa diubah sama sekali.
+// =====================================================
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const supabase = createClient(
+  "https://eqzcwudqnfunlluqnkwq.supabase.co",
+  "sb_publishable_WQsFZhlnM6l5u1U5PbRIHw_gkmKqyec"
+);
+
+async function fetchProductsFromSupabase(){
+  const { data, error } = await supabase
+    .from("products")
+    .select(`
+      id, nama, kategori, harga, emoji, foto, varian_label,
+      product_variants ( id, nama, stok, harga_tambahan ),
+      product_related!product_related_product_id_fkey ( related_product_id )
+    `)
+    .order("id");
+
+  if(error){
+    console.error("Gagal ambil produk dari Supabase:", error);
+    alert("Gagal memuat katalog produk. Coba refresh halaman.");
+    return [];
+  }
+
+  return data.map(row => {
+    const variants = row.product_variants || [];
+    const relatedIds = (row.product_related || []).map(r => r.related_product_id);
+    // Produk yang di DB cuma punya 1 varian bernama "Default" berarti aslinya
+    // TIDAK punya varian (lihat generate-sql.js) — kembalikan ke bentuk flat
+    // `stok`, supaya hasVarian() tetap false dan addToCart tidak minta pilih
+    // varian untuk produk yang dulu memang tidak butuh itu.
+    const isDefaultOnly = variants.length === 1 && variants[0].nama === "Default";
+
+    const product = {
+      id: row.id,
+      nama: row.nama,
+      kategori: row.kategori,
+      harga: row.harga,
+      emoji: row.emoji,
+      foto: row.foto,
+      relatedIds,
+    };
+
+    if(isDefaultOnly){
+      product.stok = variants[0].stok;
+      // _variantId bukan bagian dari bentuk data asli — dipakai internal saja
+      // supaya reduceStockForOrder tahu row product_variants mana yang harus
+      // dikurangi lewat RPC, tanpa mengubah kontrak data yang dibaca kode lain.
+      product._variantId = variants[0].id;
+    } else {
+      product.varianLabel = row.varian_label || "Varian";
+      product.varian = variants.map(v => ({
+        nama: v.nama,
+        stok: v.stok,
+        hargaTambahan: v.harga_tambahan || 0,
+        _variantId: v.id,
+      }));
+    }
+
+    return product;
+  });
+}
+
+const PRODUCTS = await fetchProductsFromSupabase();
 
 // =====================================================
 // STAGE 7 (persist layer): produk buatan/edit admin disimpan terpisah
@@ -872,6 +925,16 @@ let state = {
   sortBy: "default",
   stokTersediaOnly: false,
 };
+
+// Dipindah ke atas (aslinya dideklarasikan dekat definisi openProductDetail di
+// bawah) -- kalau localStorage masih menyimpan "posisi terakhir" checkout/payment
+// dari sesi sebelumnya, restoreLastView() bisa memanggil showPayment() ->
+// closeProductDetail() SEBELUM baris deklarasi lama sempat jalan, dan itu
+// menyebabkan TDZ error ("Cannot access before initialization") karena `let`
+// tidak di-hoist seperti `var`.
+let detailProductId = null;
+let detailQty = 1;
+let selectedVarian = null;
 
 function formatRupiah(num){
   return "Rp" + num.toLocaleString("id-ID");
@@ -1553,7 +1616,7 @@ document.getElementById("downloadQris").addEventListener("click", () => {
   img.src = url;
 });
 
-document.getElementById("buatPesananBtn").addEventListener("click", () => {
+document.getElementById("buatPesananBtn").addEventListener("click", async () => {
   const draft = getOrderDraft();
   if(!draft) return;
   const metodeBayar = document.querySelector('input[name="payment"]:checked').value;
@@ -1563,10 +1626,29 @@ document.getElementById("buatPesananBtn").addEventListener("click", () => {
   draft.tanggal = new Date().toISOString();
   localStorage.setItem("umkmlink_order_draft", JSON.stringify(draft));
 
-  // Stok berkurang otomatis begitu pesanan dibuat (bukan cuma saat checkout, tapi saat order final).
-  reduceStockForOrder(draft.items);
+  const btn = document.getElementById("buatPesananBtn");
+  const originalLabel = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "Memproses...";
 
-  // Catat ke riwayat pesanan (dipakai statistik Admin Dashboard: pesanan & pendapatan hari ini)
+  // Order dicatat ke Supabase DULU, sebelum stok dikurangi atau invoice tampil.
+  // Kalau ini gagal (mis. koneksi putus), jangan lanjut seolah pesanan sukses --
+  // customer harus tahu dan coba lagi, bukan dapat invoice untuk order yang
+  // sebenarnya tidak pernah tercatat di server.
+  const tercatat = await saveOrderToSupabase(draft);
+  btn.disabled = false;
+  btn.textContent = originalLabel;
+  if(!tercatat){
+    showToast("Gagal mencatat pesanan ke server. Coba lagi.");
+    return;
+  }
+
+  // Stok berkurang otomatis begitu pesanan dibuat (bukan cuma saat checkout, tapi saat order final).
+  await reduceStockForOrder(draft.items);
+
+  // Catat ke riwayat pesanan LOKAL (dipakai "Riwayat Pesanan" customer & statistik Admin Dashboard).
+  // Ini TETAP di LocalStorage secara sengaja -- Riwayat Pesanan customer tidak baca
+  // balik dari Supabase (anon tidak boleh SELECT order siapa pun, termasuk order sendiri).
   recordOrderToHistory(draft);
 
   // Bersihkan cart & form draft karena pesanan sudah final.
@@ -1579,51 +1661,104 @@ document.getElementById("buatPesananBtn").addEventListener("click", () => {
   showInvoice(draft);
 });
 
+// Kirim order + detail itemnya lewat 1 RPC atomik (create_order) -- bukan 2
+// request insert terpisah, supaya tidak butuh izin SELECT balik ke tabel
+// orders (yang sengaja ditutup untuk anon karena isinya data pribadi customer).
+async function saveOrderToSupabase(draft){
+  const itemsPayload = draft.items.map(item => ({
+    product_id: item.id,
+    nama_saat: item.namaSaat,
+    varian: item.varian ?? null,
+    harga_saat: item.hargaSaat,
+    qty: item.qty,
+  }));
+
+  const { error } = await supabase.rpc("create_order", {
+    p_nama: draft.nama,
+    p_no_hp: draft.noHp,
+    p_alamat: draft.alamat || null,
+    p_catatan: draft.catatan || null,
+    p_metode_pengiriman: draft.metodePengiriman,
+    p_kecamatan: draft.kecamatan,
+    p_subtotal: draft.subtotal,
+    p_ongkir: draft.ongkir,
+    p_items: itemsPayload,
+  });
+
+  if(error){
+    console.error("Gagal simpan order ke Supabase:", error);
+    return false;
+  }
+
+  return true;
+}
+
 // =====================================================
 // STOK OTOMATIS BERKURANG SAAT PESANAN DIBUAT
 // =====================================================
 
-// Stok sekarang disatukan ke ADMIN_EDITS_KEY (bukan key terpisah lagi) supaya cuma
-// ada SATU sumber kebenaran untuk data produk saat load — sebelumnya ada dua key
-// (edit admin vs pengurangan stok order) yang bisa saling menimpa diam-diam tergantung
-// urutan eksekusi. Sekarang keduanya nulis ke tempat yang sama, jadi tidak ada lagi
-// balapan siapa yang menang saat halaman di-refresh.
+// Stok sekarang dikurangi lewat RPC atomik `decrement_variant_stock` di Supabase
+// (bukan lagi ditulis ke ADMIN_EDITS_KEY) -- itu satu-satunya sumber kebenaran
+// stok sekarang, supaya semua device/admin melihat angka yang sama, dan supaya
+// 2 pesanan yang masuk hampir bersamaan untuk produk yang sama tidak salah hitung.
 
-function reduceStockForOrder(items){
-  const edits = loadAdminEdits();
-  items.forEach(item => {
+async function reduceStockForOrder(items){
+  for(const item of items){
     const product = getProductById(item.id);
-    if(!product) return;
+    if(!product) continue;
+    const variantId = hasVarian(product)
+      ? product.varian.find(v => v.nama === (item.varian ?? item.catatanVarian))?._variantId
+      : product._variantId;
+    if(!variantId){ console.warn(`Lewati pengurangan stok -- variantId tidak ketemu untuk ${item.namaSaat ?? product.nama}${item.varian ? " ("+item.varian+")" : ""}. Kemungkinan varian LocalStorage lama menimpa data segar dari Supabase.`); continue; }
+
+    const { error } = await supabase.rpc("decrement_variant_stock", {
+      p_variant_id: variantId,
+      p_qty: item.qty,
+    });
+    if(error){
+      console.error(`Gagal kurangi stok untuk ${item.namaSaat ?? product.nama}:`, error);
+      continue; // 1 item gagal update stok tidak boleh membatalkan seluruh order
+    }
+
+    // Update juga angka di memori, supaya renderGrid() langsung menampilkan stok
+    // baru tanpa perlu fetch ulang semua produk dari Supabase.
     if(hasVarian(product)){
-      const v = product.varian.find(v => v.nama === (item.varian ?? item.catatanVarian));
+      const v = product.varian.find(v => v._variantId === variantId);
       if(v) v.stok = Math.max(0, v.stok - item.qty);
-      edits[item.id] = { ...(edits[item.id] || {}), varian: product.varian };
     } else {
       product.stok = Math.max(0, product.stok - item.qty);
-      edits[item.id] = { ...(edits[item.id] || {}), stok: product.stok };
     }
-  });
-  saveAdminEdits(edits);
+  }
 }
 
 // Kebalikan dari reduceStockForOrder — dipanggil saat pesanan dibatalkan,
-// stok yang sempat dipotong dikembalikan. Produk/varian yang sudah dihapus
-// admin dilewati saja (stoknya sudah tidak relevan lagi).
-function restoreStockForOrder(items){
-  const edits = loadAdminEdits();
-  items.forEach(item => {
+// stok yang sempat dipotong dikembalikan (pakai qty negatif ke RPC yang sama).
+// Produk/varian yang sudah dihapus admin dilewati saja (stoknya sudah tidak relevan lagi).
+async function restoreStockForOrder(items){
+  for(const item of items){
     const product = getProductById(item.id);
-    if(!product) return;
+    if(!product) continue;
+    const variantId = hasVarian(product)
+      ? product.varian.find(v => v.nama === (item.varian ?? item.catatanVarian))?._variantId
+      : product._variantId;
+    if(!variantId){ console.warn(`Lewati pengembalian stok -- variantId tidak ketemu untuk ${item.namaSaat ?? product.nama}${item.varian ? " ("+item.varian+")" : ""}.`); continue; }
+
+    const { error } = await supabase.rpc("decrement_variant_stock", {
+      p_variant_id: variantId,
+      p_qty: -item.qty,
+    });
+    if(error){
+      console.error(`Gagal kembalikan stok untuk ${item.namaSaat ?? product.nama}:`, error);
+      continue;
+    }
+
     if(hasVarian(product)){
-      const v = product.varian.find(v => v.nama === (item.varian ?? item.catatanVarian));
+      const v = product.varian.find(v => v._variantId === variantId);
       if(v) v.stok = v.stok + item.qty;
-      edits[item.id] = { ...(edits[item.id] || {}), varian: product.varian };
     } else {
       product.stok = (product.stok || 0) + item.qty;
-      edits[item.id] = { ...(edits[item.id] || {}), stok: product.stok };
     }
-  });
-  saveAdminEdits(edits);
+  }
 }
 
 // =====================================================
@@ -1796,8 +1931,14 @@ function setSession(role){
   renderAuthUI();
 }
 
-function clearSession(){
+async function clearSession(){
+  const session = getSession();
   localStorage.removeItem(SESSION_KEY);
+  if(session?.role === "admin"){
+    // Flag lokal cuma buat UI — otorisasi tulis yang sebenarnya dicek Supabase
+    // lewat RLS berdasarkan sesi auth asli, jadi sesi itu juga harus ditutup.
+    await supabase.auth.signOut();
+  }
   renderAuthUI();
   if(!document.getElementById("adminView").classList.contains("hidden")){
     hideAdminDashboard();
@@ -1853,8 +1994,35 @@ document.querySelectorAll(".login-role-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     setSession(btn.dataset.role);
     closeLoginModal();
-    showToast(btn.dataset.role === "admin" ? "Masuk sebagai Admin" : "Masuk sebagai Customer");
+    showToast("Masuk sebagai Customer");
   });
+});
+
+document.getElementById("adminLoginForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const email = document.getElementById("adminLoginEmail").value.trim();
+  const password = document.getElementById("adminLoginPassword").value;
+  const errorEl = document.getElementById("adminLoginError");
+  const submitBtn = document.getElementById("adminLoginSubmit");
+
+  errorEl.classList.add("hidden");
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Memproses...";
+
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+  submitBtn.disabled = false;
+  submitBtn.textContent = "Masuk sebagai Admin";
+
+  if(error){
+    errorEl.textContent = "Email atau password salah.";
+    errorEl.classList.remove("hidden");
+    return;
+  }
+
+  setSession("admin");
+  closeLoginModal();
+  showToast("Masuk sebagai Admin");
 });
 
 document.getElementById("btnAdminDash").addEventListener("click", showAdminDashboard);
@@ -2337,6 +2505,10 @@ function showRiwayat(){
   updateFloatingCartVisibility();
   window.scrollTo(0,0);
 }
+// Dipanggil dari onclick="" inline di HTML (navbar "Riwayat Pesanan") —
+// fungsi di dalam <script type="module"> tidak otomatis jadi global lagi,
+// jadi harus di-expose manual ke window seperti ini.
+window.showRiwayat = showRiwayat;
 
 function hideRiwayat(){
   transitionView("catalogView", "catalog");
@@ -2404,7 +2576,7 @@ function renderRiwayat(){
   });
 }
 
-function cancelOrder(invoiceNumber){
+async function cancelOrder(invoiceNumber){
   const ok = window.confirm(`Batalkan pesanan ${invoiceNumber}? Stok akan dikembalikan otomatis.`);
   if(!ok) return;
   const history = loadOrdersHistory(); // ambil ulang dari localStorage (bukan copy hasil reverse di UI)
@@ -2418,7 +2590,7 @@ function cancelOrder(invoiceNumber){
     return;
   }
   order.dibatalkan = true;
-  restoreStockForOrder(order.items || []);
+  await restoreStockForOrder(order.items || []);
   saveOrdersHistory(history);
   renderRiwayat();
   renderGrid(); // stok yang dikembalikan langsung kelihatan di katalog
@@ -2466,10 +2638,8 @@ function repeatOrder(order){
 // =====================================================
 // PRIORITAS 2 — STAGE 9: DETAIL PRODUK + FREQUENTLY BOUGHT TOGETHER
 // =====================================================
-
-let detailProductId = null;
-let detailQty = 1;
-let selectedVarian = null;
+// detailProductId, detailQty, selectedVarian dideklarasikan di atas dekat
+// `state` -- lihat komentar di sana soal kenapa dipindah.
 
 // Klik kartu produk (selain tombol "+ Keranjang") membuka detail produk
 document.getElementById("productGrid").addEventListener("click", (e) => {
@@ -2625,7 +2795,11 @@ document.getElementById("detailAddToCartBtn").addEventListener("click", () => {
     return;
   }
   for(let i = 0; i < detailQty; i++) addToCart(p.id, selectedVarian);
-  closeProductDetail();
+  // Modal sengaja TIDAK ditutup di sini -- biar bisa langsung pilih varian
+  // lain dari produk yang sama dan nambah lagi, tanpa buka-tutup modal berkali-kali.
+  // Qty di-reset ke 1 supaya tidak kebawa qty lama saat pindah varian.
+  detailQty = 1;
+  document.getElementById("detailQty").value = detailQty;
 });
 
 // =====================================================
